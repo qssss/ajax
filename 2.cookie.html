@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>cookie</title>
+	<meta charset="utf-8">
+</head>
+<body>
+	<div>设置cookie</div>
+	<script type="text/javascript">
+		//设置cookie
+		document.cookie = 'name=huanghuang';
+		//添加一条新的cookie
+		document.cookie = 'age=18';
+
+		//获取cookie
+		var cookie = document.cookie; 
+		console.log(cookie); //name=huanghuang; age=18 通过分号和空格进行连接
+
+		// 默认情况下 cookie时临时性存储的 当浏览器不关闭的时候可以一直存储 一旦浏览器关闭 cookie就消失了
+
+		// 长期存储 需要设置cookie的过期时间 expires
+		var date = new Date();
+		date.setDate(date.getDate()+5); // 设置一个月的某一天date.setDate()
+		document.cookie = 'job=web; expires='+date;
+
+		//删除cookie 将cookie的过期时间设置为过去就可以了
+		var cookieUtil = {
+			setCookie: function(key,value,times) {
+				var date = new Date();
+				date.setDate(date.getDate() + times);
+				document.cookie = key + '=' + value +'; expires' + '=' + date;
+			},
+			getCookie: function(key) {
+				var cookie = document.cookie;
+				var arr = cookie.split('; ');
+				console.log(arr)
+				for(var i = 0;i<arr.length;i++) {
+					var subarr = arr[i].split('=');
+					var _key = subarr[0];
+					if(_key == key) {
+						return subarr[1]
+					}
+				}
+			},
+			deleteCookie: function(key) {
+				//将cookie设置为过去时间
+				var value = getCookie('name');
+				setCookie(key,value,-1);
+			}
+		}
+		cookieUtil.setCookie('passward','1234',8);
+		var psw = cookieUtil.getCookie('passward');
+		console.log(psw);
+	</script>
+</body>
+</html>

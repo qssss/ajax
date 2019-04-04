@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>cookie拖拽记录位置</title>
+	<meta charset="utf-8">
+	<script type="text/javascript" src="cookie.js"></script>
+</head>
+<style type="text/css">
+	#drag1 {position: absolute;width: 100px;height: 100px;background: #376743;left: 0;top: 0;cursor: pointer;}
+	#drag2 {position: absolute;width: 100px;height: 100px;background: #684597;left: 0;top: 0;cursor: pointer;}
+</style>
+<body>
+	<div id="drag1"></div>
+	<div id="drag2"></div>
+	<script type="text/javascript">
+		function Drag(id) {
+			this.elem = document.getElementById(id);
+			this.disx = null;
+			this.disy = null;
+			this.elem.style.left = cookieUtil.getCookie('left');
+			this.elem.style.top = cookieUtil.getCookie('top');
+		}
+		Drag.prototype.init = function() {
+			this.elem.onmousedown = function() {
+				this.down();
+				document.onmousemove = function() {
+					this.move();
+				}.bind(this);
+				document.onmouseup = function() {
+					this.up();
+				}.bind(this);
+			}.bind(this);
+		}
+		Drag.prototype.down = function(e) {
+			e = e || window.event;
+			disx = e.clientX - this.elem.offsetLeft;
+			disy = e.clientY - this.elem.offsetTop;
+		}
+		Drag.prototype.move = function(e) {
+			e = e || window.event;
+			this.elem.style.left = e.clientX - disx + 'px';
+			this.elem.style.top = e.clientY - disy + 'px';
+		}
+		Drag.prototype.up = function() {
+			document.onmousemove = null;
+			document.onmousedown = null;
+			cookieUtil.setCookie('left',this.elem.style.left,10);
+			cookieUtil.setCookie('top',this.elem.style.top,10);
+		}
+		var div1 = new Drag('drag1');
+		div1.init();
+
+		var div2 = new Drag('drag2');
+		div2.init();
+	</script>
+</body>
+</html>

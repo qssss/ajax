@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ajax</title>
+	<meta charset="utf-8">
+	<script type="text/javascript" src="ajax.js"></script>
+</head>
+<body>
+	<button id="btn">下载</button>
+	<div id="text"></div>
+	<script type="text/javascript">
+		var btn = document.getElementById('btn');
+		var text = document.getElementById('text');
+		btn.onclick = function() {
+			Ajax('post','1.get.php',null,function(data) {
+				text.innerHTML = data;
+			},function(error) {
+				text.innerHTML = error;
+			});
+		}
+	</script>
+</body>
+</html>
