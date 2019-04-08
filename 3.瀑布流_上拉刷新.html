@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>瀑布流</title>
+	<meta charset="utf-8">
+	<script type="text/javascript" src="ajax.js"></script>
+</head>
+<style type="text/css">
+	button {display: block;width: 120px;height: 40px;background: #AB2121;color: #fff;line-height: 40px;text-align: center;border: none;outline: none;cursor: pointer;}
+	body{margin: 0px; padding: 0px}
+	ul{width: 1080px; margin: 100px auto;position: relative;overflow: hidden;}
+	li{list-style: none; width: 248px; float: left; margin-left: 10px;position: relative;}
+	li div{border: 1px solid black; padding: 10px; margin-bottom: 10px}
+	li div img{width: 225px; display: block;cursor: pointer;}
+	#layer {position: fixed;left: 0;right: 0;top: 0;bottom: 0;background: rgba(0,0,0,.5);display: none;}
+	#layer img {position: absolute;left: 0;right: 0;top: 0;bottom: 0;margin:auto;}
+	#layer span {position: absolute;right: 20px;top: 20px;font-size: 20px;color: #fff;cursor: pointer;}
+	.item01 {animation: mymove1 15s linear infinite;}
+	.item02 {animation: mymove2 25s linear infinite;}
+	.item03 {animation: mymove3 35s linear infinite;}
+	.item04 {animation: mymove4 45s linear infinite;}
+	@keyframes mymove1 {
+		from {top: 0px;}
+		to {top: -1000px;}
+	}
+	@keyframes mymove2 {
+		from {top: 0px;}
+		to {top: -1000px;}
+	}
+	@keyframes mymove3 {
+		from {top: 0px;}
+		to {top: -1000px;}
+	}
+	@keyframes mymove4 {
+		from {top: 0px;}
+		to {top: -1000px;}
+	}
+</style>
+<body>
+	<ul id="oul">
+		<li class="item01"></li>
+		<li class="item02"></li>
+		<li class="item03"></li>
+		<li class="item04"></li>
+	</ul>
+	<div id="layer">
+		<span>关闭</span>
+	</div>
+</body>
+<script type="text/javascript">
+	window.onload = function() {
+		var arr = [];
+		var cpage = 1;
+		var isLogin = false;
+		var oBtn = document.getElementById('btn');
+		var oUl = document.getElementById('oul');
+		var oLi = oUl.getElementsByTagName('li');
+		var layer = document.getElementById('layer');
+		var span = layer.getElementsByTagName('span')[0];
+		getList();
+
+		function getShort() {
+			var index = 0;//假设最短的一行是第一列
+			var iH = oLi[index].offsetHeight;
+			for(var j = 0;j < oLi.length;j++) {
+				if(oLi[j].offsetHeight < iH) {
+					iH = oLi[j].offsetHeight;
+					index = j;
+				}
+			}
+			return index;
+		}
+
+		function getList() {
+			Ajax('get','3.getPics.php?cpage='+cpage,null,function(data) {
+				arr = JSON.parse(data);
+				isLogin = true;
+				if (isLogin) {
+					for(var i = 0;i < arr.length;i++) {
+						var div = document.createElement('div');
+						var img =  document.createElement('img');
+						img.src = arr[i].image;
+						img.style.width = '225' + 'px';
+						img.style.height = 225 * arr[i].height / arr[i].width + 'px';
+						img.title = '点我查看大图';
+						img.id = arr[i].id;
+						img.index = i;
+						var p = document.createElement('p');
+						p.innerHTML = arr[i].title;
+						div.appendChild(img);
+						div.appendChild(p);
+						var short = getShort();
+						oLi[short].appendChild(div);
+					}
+				}
+			},function(error) {
+				console.log(data);
+			});
+		}
+
+
+		window.onscroll = function() {
+			var sTop = document.body.scrollTop||document.documentElement.scrollTop;
+			var oTop = oUl.offsetTop;
+			var lTop = oLi[3].offsetHeight;
+			var clientHeight = window.screen.height;
+			if(lTop + oTop - sTop < clientHeight) {
+				cpage++; //该加载第二页了
+				getList();
+				isLogin = false;
+			}
+		}
+
+		oUl.addEventListener('click',function(e) {
+			var e = e || window.event;
+			var target = e.target || e.srcElement;
+			if(target.nodeName.toLowerCase() == 'img') {
+				for(var i = 0;i<arr.length;i++) {
+					if(arr[i].id == target.id) {
+						var img = document.createElement('img');
+						img.src = arr[i].image;
+						img.style.height = '80%';
+						img.style.width = 'auto';
+						layer.appendChild(img);
+						layer.style.display = 'block';
+					}
+				}
+			}
+		})
+
+		span.onclick = function() {
+			layer.style.display = 'none';
+		}
+	}
+	
+</script>
+</html>
