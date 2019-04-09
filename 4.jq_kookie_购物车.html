@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>jq_cookie购物车</title>
+	<meta charset="utf-8">
+	<script type="text/javascript" src="jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="jquery.cookie.js"></script>
+</head>
+<style>
+	*{margin: 0;padding: 0;}
+	body{overflow: hidden;}
+	li{list-style-type: none;}
+	.goods_box ul:after{content: "",display:block;clear: both;}
+	.goods_box ul{width: 1100px;margin:0 auto;}
+	.goods_item{padding: 10px 6px;border-right: 1px solid #b6b6b6;float: left;position: relative;margin-bottom: 20px;}
+	.goods_pic{padding: 2px 15px;margin: 0 auto;width: 160px;height: 160px;-webkit-transition:all 0.5s ease-in-out;-moz-transition:all 1s ease-in-out;}
+	.goods_pic:hover{transform:rotate(180deg);box-shadow: 2px 2px 5px #b6b6b6;}
+	.goods_title{font-size: 12px;text-align: left;color: #999;padding: 13px 0 7px;display: block;max-width: 100%;_width: 100%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;}
+	.sc{padding: 10px 5px;}
+	.sc_btn{width: 100px;margin: 0 auto;text-align: center;padding: 5px 10px;border-radius: 2px;box-shadow: 0 0 2px #f10;height: 20px;background: #fc1934;color: #fff;font-weight: bold;font-size: 18px;cursor:pointer;}
+	.sc_right{position: absolute;width: 270px;border-left: 2px solid #b6b6b6;right: -270px;top: 0;height: 100%;background: #fff;}
+	.sc_pic{width: 40px;height: 40px;padding: 4px 6px;background: url(toolbars.png) #999 15px 15px no-repeat;position: relative;left: -52px;top: 50%;margin-top: -24px;}
+	.sc_num{position: absolute;padding: 2px 8px;border-radius: 50%;background: red;color: #fff;top: -8px;left: 20px;z-index: 1;}
+	.sc_goodsPic{width: 80px;height: 80px;border: 1px solid #b6b6b6;float: left;}
+	.sc_goodsPic img{width: 100%;height: 100%;}
+	.sc_goodsTitle{line-height: 40px;color: #999;margin-left: 20px;float: left;}
+	.sc_goodsBtn{background: #fc1934;color: #fff;text-align: center;float: left;line-height: 30px;width: 60px;height: 30px;margin-left: 20px;cursor: pointer;}
+	.sc_goodsNum{float: left;line-height: 30px;font-size: 10px;margin-left: 5px;}
+	.sc_right li{height: 100px;position: relative;overflow: hidden;}
+	.sc_right li img {width: 90px;margin: 10px 30px 10px 10px;float: left;}
+	.sc_right li p {font-size: 14px;float: left;width: 100px;margin-top: 30px;}
+</style>
+<body>
+	<!-- 商品列表 -->
+	<div class="goods_box">
+		<ul></ul>
+	</div>
+	<!-- 右边购物车 -->
+	<div class="sc_right">
+		<div class="sc_pic">
+			<!-- 购物车内商品的数量 -->
+			<div class="sc_num"></div>
+		</div>
+		<ul></ul>
+	</div>
+	<script type="text/javascript">
+		getCartNum();
+		$.ajax({
+			type:'GET',
+			url: 'data/data.json',
+			success: function(data) {
+				var html = '';
+				var arr = data;
+				for(var i = 0;i<arr.length;i++) {
+					html += '<li class="goods_item"><div class="goods_pic"><img src="'+arr[i].img+'" alt=""></div><div class="goods_title"><p>【京东超市】奥利奥软点小草莓</p></div><div class="sc"><div class="sc_btn" id="'+arr[i].id+'">加入购物车</div></div></li>'
+				}
+				$('.goods_box ul').html(html);
+			},
+			error: function(error) {
+				console.log(error);
+			}
+		})
+
+		$('.goods_box ul').on('click','.sc_btn',function() {
+			var id = $(this).attr('id');
+			var first = $.cookie('goods') == null ? true : false;//有没有购物车的cookie
+			if(first) {
+				$.cookie('goods','[{id:'+id+',num:1}]',{
+					expires: 7
+				})
+			} else {
+				var flag = false;
+				//判断该商品是否时第一次添加
+				var arr = eval($.cookie('goods'));
+				for(var i=0;i<arr.length;i++) {
+					var _id = arr[i].id;
+					if(_id==id) {
+						flag = true;
+						break;
+					}
+				}
+				if(flag) { //如果cookie里面之前已经存过这个商品了
+					arr[i].num = arr[i].num + 1;
+					var cookieStr = JSON.stringify(arr);
+					$.cookie('goods',cookieStr,{
+						expires: 7
+					})
+				} else { //如果cookie里面之前没有存过这个商品
+					var obj = {id:id,num:1}
+					arr.push(obj);
+					var cookieStr1 = JSON.stringify(arr);
+					$.cookie('goods',cookieStr1,{
+						expires: 7
+					});
+				}
+			}
+			getCartNum();
+		})
+		//显示购物车上面的数字
+		function getCartNum() {
+			var cookies = eval($.cookie('goods'));
+			if(cookies) {
+				$('.sc_num').html(cookies.length);
+			}
+		}
+		//移动上去的时候显示购物车
+		$('.sc_right').mouseenter(function() {
+			$(this).stop().animate({
+				'right': 0
+			})
+			getCartList();
+		})
+
+		$('.sc_right').mouseleave(function() {
+			$(this).stop().animate({
+				'right': -270
+			})
+		})
+		function getCartList() {
+			$.ajax({
+				type:'GET',
+				url: 'data/data.json',
+				success: function(data) {
+					var data = data;
+					var cookies = eval($.cookie('goods'));
+					var html = '';
+					for(var i = 0;i<cookies.length;i++) {
+						var _id = cookies[i].id;
+						html+='<li><img src="'+ data[_id].img+'"><p>【京东超市】奥利奥软点小草莓</p></li>';
+					}
+					$('.sc_right ul').html(html);
+				},
+				error: function(error) {
+					console.log(error);
+				}
+			})
+		}
+	</script>
+</body>
+</html>
