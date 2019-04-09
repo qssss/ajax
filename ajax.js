@@ -23,11 +23,11 @@ function Ajax(method,url,data,success,error) {
 		if(xhr.readyState == 4) {
 			if(xhr.status == 200) {
 				if(success) {
-					success('请求成功'+xhr.responseText);
+					success(xhr.responseText);
 				}
 			} else {
 				if(error) {
-					error('请求出错'+xhr.status);
+					error(xhr.status);
 				}
 			}
 		}
