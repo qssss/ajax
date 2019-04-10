@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>自动无缝轮接滚动的瀑布流</title>
+	<meta charset="utf-8">
+	<script type="text/javascript" src="jquery-1.9.1.js"></script>
+</head>
+<style type="text/css">
+	button {display: block;width: 120px;height: 40px;background: #AB2121;color: #fff;line-height: 40px;text-align: center;border: none;outline: none;cursor: pointer;}
+	body{margin: 0px; padding: 0px}
+	ul{width: 1080px; margin: 30px auto;position: relative;overflow: hidden;}
+	li{list-style: none; width: 248px; float: left; margin-left: 10px;position: relative;}
+	li div{border: 1px solid black; padding: 10px; margin-bottom: 10px}
+	li div img{width: 225px; display: block;cursor: pointer;}
+	#layer {position: fixed;left: 0;right: 0;top: 0;bottom: 0;background: rgba(0,0,0,.5);display: none;}
+	#layer img {position: absolute;left: 0;right: 0;top: 0;bottom: 0;margin:auto;}
+	#layer span {position: absolute;right: 20px;top: 20px;font-size: 20px;color: #fff;cursor: pointer;width: 32px;height: 32px;background: url(close.png) no-repeat center center;}
+	.item01.active {animation: mymove1 20s linear infinite forwards;-webkit-animation: mymove1 20s linear infinite forwards;}
+	.item02.active {animation: mymove2 15s linear infinite forwards;-webkit-animation: mymove2 15s linear infinite forwards;}
+	.item03.active {animation: mymove3 25s linear infinite forwards;-webkit-animation: mymove3 25s linear infinite forwards;}
+	.item04.active {animation: mymove4 20s linear infinite forwards;-webkit-animation: mymove4 20s linear infinite forwards;}
+</style>
+<body>
+	<ul id="oul">
+		<li class="item01"></li>
+		<li class="item02"></li>
+		<li class="item03"></li>
+		<li class="item04"></li>
+	</ul>
+	<div id="layer">
+		<span></span>
+	</div>
+</body>
+<script type="text/javascript">
+	window.onload = function() {
+		var arr = [];
+		var isLogin = false;
+		var oBtn = document.getElementById('btn');
+		var oUl = document.getElementById('oul');
+		var oLi = oUl.getElementsByTagName('li');
+		var layer = document.getElementById('layer');
+		var span = layer.getElementsByTagName('span')[0];
+		getList();
+
+		function getShort() {
+			var index = 0;//假设最短的一行是第一列
+			var iH = oLi[index].offsetHeight;
+			for(var j = 0;j < oLi.length;j++) {
+				if(oLi[j].offsetHeight < iH) {
+					iH = oLi[j].offsetHeight;
+					index = j;
+				}
+			}
+			return index;
+		}
+
+		function getList() {
+			$.ajax({
+				url: 'data/pics.json',
+				type:'GET',
+				success: function(data) {
+					arr = eval(data);
+					console.log(arr)
+					isLogin = true;
+					if (isLogin) {
+						for(var i = 0;i < arr.length;i++) {
+							var div = document.createElement('div');
+							var img =  document.createElement('img');
+							img.src = arr[i].image;
+							img.style.width = '225' + 'px';
+							img.style.height = 225 * arr[i].height / arr[i].width + 'px';
+							img.title = '点我查看大图';
+							img.id = arr[i].id;
+							img.index = i;
+							var p = document.createElement('p');
+							p.innerHTML = arr[i].title;
+							div.appendChild(img);
+							div.appendChild(p);
+							var short = getShort();
+							oLi[short].appendChild(div);
+						}
+						//此处计算每一列的高度 用于样式中的css @keyframes的赋值
+						var s1 = $('ul li').eq(0).height();
+						var s2 = $('ul li').eq(1).height();
+						var s3 = $('ul li').eq(2).height();
+						var s4 = $('ul li').eq(3).height();
+						var params = [s1,s2,s3,s4];
+						addKeyFrames(params); 
+
+						//这是第二份数据的复制
+						var li_1 = $('ul li').eq(0).html();
+						var li_2 = $('ul li').eq(1).html();
+						var li_3 = $('ul li').eq(2).html();
+						var li_4 = $('ul li').eq(3).html();
+						$('ul li').eq(0).append(li_1);
+						$('ul li').eq(1).append(li_2);
+						$('ul li').eq(2).append(li_3);
+						$('ul li').eq(3).append(li_4);
+						$('#oul li').addClass('active');
+					}					
+				},
+				error: function(error) {
+					console.log('出错了');
+				}
+			})
+		}
+		oUl.addEventListener('click',function(e) {
+			var e = e || window.event;
+			var target = e.target || e.srcElement;
+			if(target.nodeName.toLowerCase() == 'img') {
+				for(var i = 0;i<arr.length;i++) {
+					if(arr[i].id == target.id) {
+						var img = document.createElement('img');
+						img.src = arr[i].image;
+						img.style.height = '80%';
+						img.style.width = 'auto';
+						layer.appendChild(img);
+						layer.style.display = 'block';
+					}
+				}
+			}
+		})
+		//因为滚动数据的高度很大可能是通过接口获取出来的 所以我们需要动态的添加滚动数据的高度 
+		function addKeyFrames([y1,y2,y3,y4]) {
+			var style = document.createElement('style');
+			style.type = 'text/css';
+			var keyFrames = `
+				@keyframes mymove1 {
+					from {transform:translate3d(0,dynamic_height1,0);}
+					to {top: 0;display: none;transform:translate3d(0,0,0);}
+				}
+				@keyframes mymove2 {
+					from {transform:translate3d(0,dynamic_height2,0);}
+					to {top: 0;display: none;transform:translate3d(0,0,0);}
+				}
+				@keyframes mymove3 {
+					from {transform:translate3d(0,dynamic_height3,0);}
+					to {top: 0;display: none;transform:translate3d(0,0,0);}
+				}
+				@keyframes mymove4 {
+					from {transform:translate3d(0,dynamic_height4,0);}
+					to {top: 0;display: none;transform:translate3d(0,0,0);}
+				}
+
+			`
+			var arr = arguments[0];
+			for(var i = 0;i < arr.length;i++) {
+				var _index = i+1;
+				var keyframes = keyFrames.replace('dynamic_height'+_index,-arr[i]+'px');
+				keyFrames = keyframes;
+			}
+			style.innerHTML = keyframes;
+			document.getElementsByTagName('head')[0].appendChild(style);
+		}
+		span.onclick = function() {
+			layer.style.display = 'none';
+		}
+	}
+	
+</script>
+</html>
