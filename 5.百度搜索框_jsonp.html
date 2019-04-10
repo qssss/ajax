@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>百度搜索框_jsonp</title>
+	<meta charset="utf-8">
+	<script type="text/javascript" src="jquery-1.11.3.js"></script>
+</head>
+<style type="text/css">
+	#q{width: 300px; height: 30px; padding: 5px; border: 1px solid #f90; font-size: 16px}
+	#ul1{border: 1px solid #f90; width: 310px; margin: 0;padding: 0; display: none}
+	#ul1 li{list-style: none}
+	li a{line-height: 30px; padding: 5px; text-decoration: none; color: black; display: block}
+	li a:hover{background-color: #f60; color: white}
+</style>
+<body>
+	<input type="text" id = 'q'>
+	<ul id = 'ul1'>
+		
+	</ul>
+	<script type="text/javascript">
+	/*JSONP跨域
+	1、通过script标签的src属性实现跨域
+	2、我们需要在想加载数据的时候，再将数据加载出来。可以动态创建script标签
+
+	步骤：
+		1、在资源加载进来之前定义好一个函数，这个函数接受一个参数（下载的数据）
+		2、函数里面利用这个参数做一些事情
+		3、然后在需要的时候，通过script加载对应远程文件
+		4、当远程文件资源加载进来的时候，就会执行我们前面定义好的函数，并且把数据当做这个函数的参数传入进去。*/
+	function showFunc(data) {
+		var oul = document.getElementById('ul1');
+		var data = data.s;
+		var html = '';
+		for(var i = 0;i<data.length;i++) {
+			html+='<li><a target="_blank" href="'+'https://www.baidu.com/s?wd='+data[i]+'">'+data[i]+'</a></li>'
+		}
+		oul.style.display = 'block';
+		oul.innerHTML = html;
+	}
+	window.onload = function() {
+		var oQ = document.getElementById('q');
+		var oUl = document.getElementById('ul');
+		oQ.onkeyup = function() {
+			var value = this.value;
+			// 1.js版本的jsonp
+			if(value!='') {
+				var script = document.createElement('script');
+				script.src='http://suggestion.baidu.com/su?wd='+value+'&cb=showFunc';
+				document.body.appendChild(script);
+			} else {
+				oUl.style.display = 'none';
+			}
+			// 2.jQuery版本的jsonp
+			// $.ajax({
+			// 	url:'http://suggestion.baidu.com/su?wd='+ value,
+			// 	type:'GET',
+			// 	async: true,
+			// 	dataType: 'jsonp',
+			// 	jsonp:'cb',//指定参数的名称
+			// 	jsonpCallback:'showFunc',//指定回掉函数的名称
+			// 	success: function(data) {
+			// 		console.log('请求成功')
+			// 	},
+			// 	error: function(error) {
+			// 		console.log(error)
+			// 	}
+			// })
+		}
+	}
+	</script>
+</body>
+</html>
